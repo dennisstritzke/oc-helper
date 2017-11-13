@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: ubuntu-pvc
+  name: ubuntu-pvc
+spec:
+  replicas: 1
+  selector:
+    app: ubuntu-pvc
+    deploymentconfig: ubuntu-pvc
+  strategy:
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ubuntu-pvc
+        deploymentconfig: ubuntu-pvc
+    spec:
+      containers:
+      - image: ubuntu:17.10
+        imagePullPolicy: IfNotPresent
+        name: ubuntu-pvc
+        command: ["/bin/bash", "-c", "echo 'Look into /ubuntu-pvc to see the magic happening...'; while true; do date > /ubuntu-pvc/$(date +%Y-%m-%d_%H-%M-%S).txt; find /ubuntu-pvc -name *.txt | sort | head -n -10 | xargs -d '\n' rm -f --; sleep 2; done"]
+        resources:
+          limits:
+            memory: 64Mi
+        volumeMounts:
+        - name: ubuntu-pvc
+          mountPath: "/ubuntu-pvc"
+      restartPolicy: Always
+      volumes:
+      - name: ubuntu-pvc
+        persistentVolumeClaim:
+          claimName: ubuntu-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ubuntu-pvc
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+     requests:
+       storage: 128Mi

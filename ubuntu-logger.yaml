@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: ubuntu-logger
+  name: ubuntu-logger
+spec:
+  replicas: 1
+  selector:
+    app: ubuntu-logger
+    deploymentconfig: ubuntu-logger
+  strategy:
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ubuntu-logger
+        deploymentconfig: ubuntu-logger
+    spec:
+      containers:
+      - image: ubuntu:17.10
+        imagePullPolicy: IfNotPresent
+        name: ubuntu-logger
+        command: ["/bin/bash", "-c", "while true; do echo Hello OpenShift!; sleep 1; done"]
+        resources:
+          limits:
+            memory: 64Mi
+      restartPolicy: Always
